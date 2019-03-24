@@ -1,0 +1,87 @@
+---
+title: "TCG8"
+output: html_document
+---
+
+```{r}
+
+library(XML)
+library(rvest)
+
+weburl1<-read_html("https://www.loriferber.com/research/presidential-facts-statistics/presidential-birthdates.html")
+weburl1
+
+
+Name<-weburl1%>%html_nodes("td:nth-child(2) span")%>%html_text()
+Name
+
+Term<-weburl1%>%html_nodes("td:nth-child(3) span")%>%html_text()
+Term
+
+
+Place_of_birth<-weburl1%>%html_nodes("td:nth-child(4) span")%>%html_text()
+Place_of_birth
+
+Date_of_Birth<-weburl1%>%html_nodes("td:nth-child(5) span")%>%html_text()
+format(Date_of_Birth, format="%m/%d/%Y")
+
+
+Age_at_Inauguration<-weburl1%>%html_nodes("td:nth-child(7) span")%>%html_text()
+Age_at_Inauguration<-as.numeric(Age_at_Inauguration)
+Age_at_Inauguration<-as.numeric(Age_at_Inauguration)
+
+
+today <- Sys.Date()
+format(today, format="%m/%d/%Y")
+
+presidents_age_as_of_today_in_weeks<-floor(difftime((Sys.Date()),as.Date(Date_of_Birth,  "%m/%d/%Y"),unit="weeks")/52.25)
+
+presidents_age_as_of_today_in_weeks<-as.numeric(presidents_age_as_of_today_in_weeks)
+
+
+US_Presidential_Info<-data.frame(Name,Term,Place_of_birth,Date_of_Birth,Age_at_Inauguration,presidents_age_as_of_today_in_weeks)
+
+
+
+US_Presidential_Info<-US_Presidential_Info[-43,]
+
+US_Presidential_Info<-US_Presidential_Info[rowSums(is.na(US_Presidential_Info)) == 0,]
+
+US_Presidential_Info
+
+library(ggplot2)
+
+ggplot(US_Presidential_Info, aes(x=Age_at_Inauguration, y=presidents_age_as_of_today_in_weeks))  + geom_point(color="RED", size=1) + geom_smooth(method='lm', se=FALSE)
+
+US_Presidential_Info1<-head(US_Presidential_Info,n=10)
+US_Presidential_Info1
+
+summary(US_Presidential_Info1)
+
+
+
+library(ggplot2)
+
+library(VIM)
+
+newdata<-data.frame(Age_at_Inauguration,presidents_age_as_of_today_in_weeks)
+
+newdata<-newdata[-43,]
+newdata<-newdata[rowSums(is.na(newdata)) == 0,]
+newdata
+
+
+clustering1<-kmeans(newdata,3)
+clustering1
+
+clustering1$size
+clustering1$cluster
+clustering1$centers
+
+par(mar=rep(0,2,4))
+plot(newdata[c("Age_at_Inauguration","presidents_age_as_of_today_in_weeks")],col=clustering1$cluster, pch=20, cex=2)
+
+points(clustering1$centers,col=1:3, pch=3, cex=2, lwd=3)
+
+
+```
